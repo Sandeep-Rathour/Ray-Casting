@@ -5,19 +5,31 @@
 using namespace std;
 using namespace sf;
 
-const int gridHeight = 30; // y cordinate of display
-const int gridWidth = 40;  // x cordinate of display
-const int cellSize = 18;
+const int gridHeight = 24; // y cordinate of display
+const int gridWidth = 34;  // x cordinate of display
+const int cellSize = 26;
 
 int main(void)
 {
     sf::RenderWindow window(sf::VideoMode(gridWidth * cellSize, gridHeight * cellSize), "Grid Raycaster", sf::Style::Close);
 
-    // Vector of storing color
-    // Vector<vector<Color>> Map (gridHeight, vector<Color>(gridWidth, Color::White));
+    sf::CircleShape red;
+    sf::CircleShape blue;
+    float radius = 7;
+
+    red.setFillColor(Color::Red);
+    red.setRadius(radius);
+    red.setOrigin(radius, radius);
+
+    
+    blue.setFillColor(Color::Green);
+    blue.setRadius(radius);
+    blue.setOrigin(radius, radius);
 
     int gridY;
     int gridX;
+
+    sf::Vertex line[12];
 
     // vector for Rectangle shape
     vector<vector<RectangleShape>> shape(gridHeight, vector<RectangleShape>(gridWidth));
@@ -37,10 +49,17 @@ int main(void)
     // window.setFramerateLimit(120);
 
     Clock clock;
+    
     Time elapsedTime;
+    
+
+    float speed = 400.f;
 
     while (window.isOpen())
     {
+        elapsedTime = clock.restart();
+        float deltaTime = elapsedTime.asSeconds();
+
         Event evnt;
         while (window.pollEvent(evnt))
         {
@@ -48,20 +67,40 @@ int main(void)
             {
                 window.close();
             }
-        }
-
-        if (Keyboard::isKeyPressed(Keyboard::R))
-        {
-            for (int y = 0; y < gridHeight; y++)
+            if (Keyboard::isKeyPressed(Keyboard::R))
             {
-                for (int x = 0; x < gridWidth; x++)
+                for (int y = 0; y < gridHeight; y++)
+                {
+                    for (int x = 0; x < gridWidth; x++)
                     shape[y][x].setFillColor(Color::Black);
+                }
             }
         }
 
-        Vector2i mousePos = Mouse::getPosition(window);
+        if (Keyboard::isKeyPressed(Keyboard::W))
+        {
+            red.move(0, -speed * deltaTime);
+        }
+        if (Keyboard::isKeyPressed(Keyboard::S))
+        {
+            red.move(0, speed * deltaTime);
+        }
+        if (Keyboard::isKeyPressed(Keyboard::A))
+        {
+            red.move(-speed * deltaTime, 0);
+        }
+        if (Keyboard::isKeyPressed(Keyboard::D))
+        {
+            red.move(speed * deltaTime, 0);
+        }
 
-        if (Mouse::isButtonPressed(Mouse::Left) &&  0 < mousePos.x && 0 < mousePos.y)
+        
+        
+
+        Vector2i mousePos = Mouse::getPosition(window);
+        blue.setPosition(mousePos.x, mousePos.y);
+
+        if (Mouse::isButtonPressed(Mouse::Right) &&  0 < mousePos.x && 0 < mousePos.y)
         {
             gridX = mousePos.x / cellSize;
             gridY = mousePos.y / cellSize;
@@ -69,8 +108,20 @@ int main(void)
             if (gridX < gridWidth && gridY < gridHeight)
                 shape[gridY][gridX].setFillColor(Color::Cyan);
         }
+        if (Mouse::isButtonPressed(Mouse::Left) && 0 < mousePos.x && 0 < mousePos.y)
+        {
+            sf::Vector2f pointA(100, 100);
+            sf::Vector2f pointB(700, 700);
+
+            sf::Vertex line [] = 
+            {
+               sf::Vertex (pointA, sf::Color::Red), 
+               sf::Vertex (pointB, sf::Color::Green)
+            };
+        }
 
         window.clear(Color::Black);
+
         for (int y = 0; y < gridHeight; y++)
         {
             for (int x = 0; x < gridWidth; x++)
@@ -78,11 +129,14 @@ int main(void)
         }
 
 
-        elapsedTime = elapsedTime + clock.restart();
-        float fps = 1.f / elapsedTime.asSeconds();
-        elapsedTime = Time::Zero;
+        // elapsedTime = elapsedTime + clock.restart();
+        float fps = 1.f / deltaTime;
+        // elapsedTime = Time::Zero;
         cout << "FPS: " << fps << endl;
         
+        window.draw(red);
+        window.draw(blue);
+        window.draw(line, 2, sf::Lines);
         window.display();
     }
     return 0;
